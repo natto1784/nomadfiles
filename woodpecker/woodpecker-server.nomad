@@ -67,10 +67,10 @@ EOF
     task "woodpecker" {
       driver = "docker"
       config {
-        image = "woodpeckerci/woodpecker-server:latest"
+        image = "woodpeckerci/woodpecker-server:next"
         command = "web"
         image_pull_timeout = "30m"
-        ports = [ "http" ]
+        ports = [ "http", "grpc" ]
       }
 
       resources {
@@ -81,7 +81,7 @@ EOF
       template {
         data = <<EOF
 {{ with secret "kv/data/woodpecker/keys" }}
-WOODPECKER_LOG_LEVEL=info
+WOODPECKER_LOG_LEVEL=trace
 WOODPECKER_HOST={{ .Data.data.external_host }}
 WOODPECKER_AGENT_SECRET={{ .Data.data.agent_secret }}
 {{end}}
