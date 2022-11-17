@@ -14,10 +14,6 @@ job "monaba" {
         to = 5432
       }
     }
-    service {
-      name = "gitea-http"
-      port = "http"
-    } 
     vault {
       policies = [ "monaba" ]
     }
