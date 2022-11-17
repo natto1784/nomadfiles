@@ -25,16 +25,12 @@ job "concourse-worker" {
     task "concourse" {
       driver = "docker"
       config {
-        image = "rdclda/concourse:7.7.0"
+        image = "rdclda/concourse:7.8.3"
         command = "worker"
         image_pull_timeout = "30m"
         privileged = true
         volumes = [ "/var/lib/nomad-st/concourse-worker:/work"]
         entrypoint = [ "dumb-init", "/work/entrypoint.sh" ]
-      }
-      resources {
-        cpu    = 2048
-        memory = 2048
       }
       template {
         data = <<EOF

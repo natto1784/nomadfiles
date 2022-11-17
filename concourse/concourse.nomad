@@ -59,22 +59,14 @@ EOF
         POSTGRES_PASSWORD_FILE="${NOMAD_SECRETS_DIR}/cc-db.pass"
         POSTGRES_DB       = "concourse"
       }
-      resources {
-        cpu    = 250
-        memory = 128
-      }
     }
     task "concourse" {
       driver = "docker"
       config {
-        image = "rdclda/concourse:7.7.0"
+        image = "rdclda/concourse:7.8.3"
         command = "web"
         image_pull_timeout = "30m"
         ports = ["http", "tsa" ]
-      }
-      resources {
-        cpu    = 250
-        memory = 128
       }
       template {
         data = <<EOF
