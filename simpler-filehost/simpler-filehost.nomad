@@ -1,4 +1,4 @@
-job "simpler-filehost" {
+job "nattofiles" {
   region = "global"
   datacenters = [ "nazrin" ]
   type = "service"
@@ -20,6 +20,7 @@ job "simpler-filehost" {
         volumes = [ "/var/lib/files:/var/files", "/tmp:/tmp" ]
       }
       env {
+        TITLE = "nattofiles"
         USER_URL = "https://f.weirdnatto.in"
         ROCKET_LIMITS = "{file=\"512MB\",data-form=\"512MB\"}"
         ROCKET_LOG_LEVEL = "debug"

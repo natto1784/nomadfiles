@@ -1,4 +1,4 @@
-job "gitea" {
+job "nattotea" {
   region = "global"
   datacenters = [ "nazrin" ]
   type = "service"
@@ -7,11 +7,11 @@ job "gitea" {
     network {
       mode = "bridge"
       port "http" {
-        static = 5000
+        static = 5001
         to = 3000
       }
       port "ssh_pass" {
-        static = 222
+        static = 202
         to = 22
       }
       port "db" {
@@ -51,6 +51,7 @@ GITEA__mailer__USER={{.Data.data.mailer}}
 GITEA__mailer__PASSWD={{.Data.data.mailerpass}}
 GITEA__service__REGISTER_EMAIL_CONFIRM=true
 GITEA__oauth2_client__REGISTER_EMAIL_CONFIRM=true
+GITEA__actions__ENABLED=true
 {{end}}
 EOF
         destination = "${NOMAD_SECRETS_DIR}/data.env"
@@ -58,13 +59,31 @@ EOF
       }
       driver = "docker"
       config {
-        image = "gitea/gitea:dev-linux-arm64"
+        image = "gitea/gitea:latest"
         ports = [ "http", "ssh_pass" ]
         volumes = [ "/var/lib/nomad-st/gitea:/data" ]
       }
-      resources {
-        cpu    = 1024
-        memory = 512
+    }
+    task "runner" {
+      driver = "docker"
+      config {
+        image = "gitea/act_runner:latest"
+        volumes = [
+		    "/var/lib/nomad-st/mazdoor/data:/data",
+		    "/var/lib/nomad-st/mazdoor/config.yaml:/config.yaml",
+                    "/var/run/docker.sock:/var/run/docker.sock" 
+                  ]
+      }
+      template {
+        data = <<EOF
+GITEA_INSTANCE_URL=http://localhost:{{env "NOMAD_PORT_http" }}
+GITEA_RUNNER_NAME=mazdoor
+{{with secret "kv/data/gitea"}}
+GITEA_RUNNER_REGISTRATION_TOKEN={{.Data.data.runnertoken}}
+{{end}}
+EOF
+        destination = "${NOMAD_SECRETS_DIR}/data.env"
+        env = true
       }
     }
     task "db" {
@@ -76,18 +95,18 @@ EOF
       }
       driver = "docker"
       config {
-        image = "postgres:alpine"
+        image = "postgres:14-alpine"
         ports = ["db"]
         volumes = [ "/var/lib/nomad-st/postgres-gitea:/var/lib/postgresql/data" ]
+      }
+      resources {
+        memory = 100
+        cpu = 128
       }
       env {
         POSTGRES_USER     = "gitea"
         POSTGRES_PASSWORD_FILE="${NOMAD_SECRETS_DIR}/gitea_db.pass"
         POSTGRES_DB       = "gitea"
-      }
-      resources {
-        cpu    = 200
-        memory = 128
       }
       service {
         name = "gitea-db"
